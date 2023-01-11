@@ -1,0 +1,66 @@
+-- This one is real tricky. The first challenge is to get the type signatures
+-- right. For `pure`, it make sense to think of a function that converts any
+-- value into a function that always returns that same value:
+--
+--   pure x = \_ -> x
+--
+-- This is equivalent to the STD prelude's `const` function. So we can equate
+-- `pure` to `const`.
+--
+--   pure = const
+--
+-- Implementing `<*>` is more challenging. Its type signature should be
+-- similar to `fmap` for the partially-applied function type, but wrap its
+-- first argument inside a partially-applied data type as well:
+--
+--   (<*>) :: (a -> (b -> c)) -> (a -> b) -> (a -> c)
+--   g <*> f = ...
+--
+-- Its first argument `g` is a function that takes 2 arguments, one of type
+-- `a` and one of type `b`, and returns a type `c`:
+--
+--   g a b :: c
+--
+-- Its second argument `f` is a function that takes 1 argument of type `a` and
+-- returns a result of type `b`:
+--
+--   f a :: b
+--
+-- Its return type is a function (we will call it `\x`) that takes in 1
+-- argument of type `a` and returns a result of type `c`. We don't know its
+-- implementation yet:
+--
+--   \x -> ... :: a -> c
+--
+-- So the challenge is to process `g` and `f` and return a valid `\x`. Within
+-- `\x`, the `x` variable will be of type `a`. Thus a viable implementation of
+-- `\x` could have `g` take `x` as its first argument:
+--
+--   \x -> g x ... :: a -> c
+--
+-- Second argument for `g` must be of type `b`. We can use `f` to process `x`
+-- as well and convert it to type `b`:
+--
+--   \x -> g x (f x) :: a -> c
+--
+-- The above makes `\x` have the correct type signature. We can thus implement
+-- the applicative operator as such:
+--
+--   g <*> f = \x -> g x (f x)
+--
+-- I comment the answer out as it clashes with definitions on the STD prelude.
+-- At this stage in the book I am not sure what's the purpose of converting
+-- partially-applied function types into applicatives, there is likely a deep
+-- mathematical reason we are yet to find out. :)
+
+--instance Applicative ((->) a) where
+--	-- pure :: b -> (a -> b)
+--	pure = const
+--
+--	-- alternatively
+--	--pure x = \_ -> x
+--
+--	-- (<*>) :: (a -> b -> c) -> (a -> b) -> (a -> c)
+--	g <*> f = \x -> g x (f x)
+
+v1 = pure (+5) <*> (+6) $ 1 -- = 12

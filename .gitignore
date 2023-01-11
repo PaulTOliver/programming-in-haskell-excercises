@@ -1,0 +1,3 @@
+# I Only track `.hs` files so I can safely build example binaries.
+chapter-*/*
+!chapter-*/*.hs
